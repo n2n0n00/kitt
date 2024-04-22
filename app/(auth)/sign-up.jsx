@@ -1,23 +1,51 @@
-import { View, Text, SafeAreaView, Image, ScrollView } from "react-native";
+import {
+  View,
+  Text,
+  SafeAreaView,
+  Image,
+  ScrollView,
+  Alert,
+} from "react-native";
 import React, { useState } from "react";
 import { icons } from "../../constants";
 import FormField from "../../components/FormField";
 import CustomButton from "../../components/CustomButton";
 import { router } from "expo-router";
+import { createUser } from "../../api/appwrite";
 
 const SignUp = () => {
+  const { setUser, setIsLogged } = useGlobalContext();
+  const [isSubmitting, setSubmitting] = useState(false);
   const [form, setForm] = useState({
     email: "",
     password: "",
     name: "",
   });
 
+  const submit = async () => {
+    if (form.name === "" || form.email === "" || form.password === "") {
+      Alert.alert("Error", "Please fill in all fields");
+    }
+
+    setSubmitting(true);
+    try {
+      const result = await createUser(form.email, form.password, form.name);
+      setUser(result);
+      setIsLogged(true);
+      router.replace("/feed");
+    } catch (error) {
+      Alert.alert("Error", error.message);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   return (
     <SafeAreaView className="bg-[#FFBB7C] h-full">
       <ScrollView>
-        <View className="w-full justify-center h-full">
-          <Image source={icons.signup} className="mt-8" />
-          <View className="bg-white h-[700px] rounded-3xl px-4 mb-2">
+        <View className="w-full justify-center px-2 h-full">
+          <Image source={icons.signup} className="my-8" />
+          <View className="bg-white rounded-3xl px-4 mb-2">
             <View>
               <FormField
                 title="Name"
@@ -53,14 +81,15 @@ const SignUp = () => {
             <View className="mt-4">
               <CustomButton
                 label="Login"
-                handlePress={() => router.push("./feed")}
+                handlePress={submit}
+                isLoading={isSubmitting}
                 textStyles="text-white text-lg"
                 containerStyles="w-full bg-[#FF8743] mb-6"
               />
             </View>
 
             <View>
-              <Text className="text-center w-full text-md mb-2">
+              {/* <Text className="text-center w-full text-md mb-2">
                 Login with social?
               </Text>
               <View className="flex-row w-full items-center justify-center mt-2">
@@ -82,7 +111,7 @@ const SignUp = () => {
                   textStyles="text-black"
                   containerStyles="w-[105px] bg-white border-gray-300 border-2"
                 />
-              </View>
+              </View> */}
               <View className="flex-row justify-center items-center">
                 <Text className="text-lg">Already have an account?</Text>
                 <CustomButton

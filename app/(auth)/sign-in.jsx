@@ -4,18 +4,41 @@ import { icons } from "../../constants";
 import FormField from "../../components/FormField";
 import CustomButton from "../../components/CustomButton";
 import { router } from "expo-router";
+import { getCurrentUser, signIn } from "../../api/appwrite";
 
 const SignIn = () => {
+  const { setUser, setIsLogged } = useGlobalContext();
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [form, setForm] = useState({
     email: "",
     password: "",
   });
 
+  const submit = async () => {
+    if (form.email === "" || form.password === "") {
+      Alert.alert("Error", "Please fill in all fields");
+    }
+
+    setIsSubmitting(true);
+    try {
+      await signIn(form.email, form.password);
+      const result = await getCurrentUser();
+      setUser(result);
+      setIsLogged(true);
+
+      router.replace("/feed");
+    } catch (error) {
+      Alert.alert("Error", error.message);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
     <SafeAreaView className="bg-[#FFBB7C] h-full">
-      <View className="w-full justify-center h-full my-6">
-        <Image source={icons.loginIcons} className="mt-8" />
-        <View className="bg-white h-[600px] rounded-3xl px-4 mb-12">
+      <View className="w-full justify-around px-2 h-full my-8">
+        <Image source={icons.loginIcons} className="" />
+        <View className="bg-white rounded-3xl px-4 mb-12">
           <View>
             <FormField
               title="Email"
@@ -41,17 +64,18 @@ const SignIn = () => {
             />
           </View>
 
-          <View className="mt-4">
+          <View className="mt-12">
             <CustomButton
               label="Login"
-              handlePress={() => router.push("./feed")}
               textStyles="text-white text-lg"
+              handlePress={submit}
+              isLoading={isSubmitting}
               containerStyles="w-full bg-[#FF8743] mb-6"
             />
           </View>
 
           <View>
-            <Text className="text-center w-full">Login with social?</Text>
+            {/* <Text className="text-center w-full">Login with social?</Text>
             <View className="flex-row w-full items-center justify-center mt-2">
               <CustomButton
                 image={icons.facebook}
@@ -71,7 +95,7 @@ const SignIn = () => {
                 textStyles="text-black"
                 containerStyles="w-[105px] bg-white border-gray-300 border-2"
               />
-            </View>
+            </View> */}
             <View className="flex-row justify-center items-center">
               <Text className="text-lg">Don't have an account?</Text>
               <CustomButton

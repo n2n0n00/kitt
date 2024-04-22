@@ -9,9 +9,12 @@ import {
 } from "react-native";
 import { icons } from "../constants";
 import CustomButton from "../components/CustomButton";
-import { router } from "expo-router";
+import { router, Redirect } from "expo-router";
+import { useGlobalContext } from "../context/GlobalProvider";
 
 export default function App() {
+  const { isLoading, isLogged } = useGlobalContext();
+  if (!isLoading && isLogged) return <Redirect href="/feed" />;
   return (
     <SafeAreaView style={styles.container} className="h-full">
       <ScrollView contentContainerStyle={{ height: "100%" }}>
@@ -30,7 +33,7 @@ export default function App() {
           />
 
           <View>
-            <Text className="text-lg text-center mb-6">
+            {/* <Text className="text-lg text-center mb-6">
               Login with exisitng account?
             </Text>
             <View className="flex-row mb-4">
@@ -52,7 +55,7 @@ export default function App() {
                 textStyles="text-black"
                 containerStyles="w-[105px] bg-white"
               />
-            </View>
+            </View> */}
             <View className="flex-row justify-center items-center">
               <Text className="text-lg">Don't have an account?</Text>
               <CustomButton
