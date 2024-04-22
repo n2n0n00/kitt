@@ -1,11 +1,13 @@
-import { View, Text } from "react-native";
+import { View, Text, ScrollView, SafeAreaView } from "react-native";
 import React from "react";
 
 const Feed = () => {
   return (
-    <View>
-      <Text>Feed</Text>
-    </View>
+    <SafeAreaView className="">
+      <ScrollView>
+        <View className="my-6 px-4 space-y-6"></View>
+      </ScrollView>
+    </SafeAreaView>
   );
 };
 
