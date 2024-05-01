@@ -12,20 +12,20 @@ export const appwriteConfig = {
   endpoint: "https://cloud.appwrite.io/v1",
   platform: "com.kitt.kitt",
   projectId: "6626ada222f4fef5abeb",
-  //   storageId: "6626b129a794f927cedf",
   databaseId: "6626b129a794f927cedf",
-  usersCollection: "6626b16ecc2f21d220f7",
-  //   videoCollectionId: "66198c079c9ca860a41e",
+  groupedMessagesCollection: "662c1b47002ed415b33c",
+  messagesCollection: "662c1a9e0004417c9970",
+  usersCollection: "662c19e70039a60041ee",
 };
 
 const {
   endpoint,
   platform,
   projectId,
-  //   storageId,
   databaseId,
+  groupedMessagesCollection,
+  messagesCollection,
   usersCollection,
-  //   videoCollectionId,
 } = appwriteConfig;
 
 const client = new Client();
@@ -98,3 +98,134 @@ export async function getCurrentUser() {
     console.log(error);
   }
 }
+
+export async function signOut() {
+  try {
+    const session = await account.deleteSession("current");
+
+    return session;
+  } catch (error) {
+    throw new Error(error);
+  }
+}
+
+export async function addMessageToConversation(senderId, receiverId, body) {
+  try {
+    const messageId = ID.unique();
+    const newMessage = await databases.createDocument(
+      appwriteConfig.databaseId,
+      appwriteConfig.messagesCollection,
+      messageId,
+      {
+        messageId: messageId,
+        senderId: senderId,
+        receiverId: receiverId,
+        body: body,
+        timeStamp: new Date().toISOString(),
+      }
+    );
+
+    const query = `{"filters": [{"fieldName": "senderId", "operator": "eq", "value": "${senderId}"}, {"fieldName": "receiverId", "operator": "eq", "value": "${receiverId}"}]}`;
+    const conversations = await sdk.database.listDocuments(
+      "groupedMessagesCollection",
+      undefined,
+      undefined,
+      query
+    );
+
+    if (!conversations) {
+      await createNewConversation(senderId, receiverId, messageId);
+      return newMessage;
+    } else {
+      const conversationData = conversations.documents[0];
+
+      const existingMessageIds = conversationData.messageIdsArray; // Assume you fetch existing messageIdsArray from the database
+
+      // Append the new messageId to the existing array using the spread operator
+      const updatedMessageIds = [...existingMessageIds, messageId];
+
+      const updateConversation = await databases.updateDocument(
+        appwriteConfig.databaseId,
+        appwriteConfig.groupedMessagesCollection,
+        conversationData.conversationId,
+        {
+          conversationId: conversationData.conversationId,
+          senderId: senderId,
+          receiverId: receiverId,
+          messageIdsArray: updatedMessageIds,
+        }
+      );
+
+      console.log(updatedMessageIds);
+      return updateConversation;
+    }
+  } catch (error) {
+    throw new Error(error);
+  }
+}
+
+export async function createNewConversation(senderId, receiverId, messageId) {
+  try {
+    const conversationId = ID.unique();
+    const newConversation = await databases.createDocument(
+      appwriteConfig.databaseId,
+      appwriteConfig.groupedMessagesCollection,
+      conversationId,
+      {
+        conversationId: conversationId,
+        senderId: senderId,
+        receiverId: receiverId,
+        messageIdsArray: [messageId],
+      }
+    );
+
+    return newConversation;
+  } catch (error) {
+    throw new Error(error);
+  }
+}
+
+export async function fetchConversationsByUser() {
+  try {
+    const currentAccount = await getCurrentUser();
+    console.log(currentAccount);
+
+    const query = `{"filters": [{"fieldName": "senderId", "operator": "eq", "value": "${currentAccount}"}, {"fieldName": "receiverId", "operator": "eq", "value": "${currentAccount}", "or": true}]}`;
+    const conversations = await databases.listDocuments(
+      appwriteConfig.databaseId,
+      appwriteConfig.groupedMessagesCollection,
+      [Query.equal("senderId", `${currentAccount.$id}`)]
+    );
+    // Return the list of conversation documents
+    console.log(conversations);
+    return conversations.documents[0];
+  } catch (error) {
+    throw new Error(error);
+  }
+}
+
+//we send the message to the collection, the createConversation takes the senderId and the receiverId and the newMessage and creates a new conversation with an conversationId, receiver and senderId and pushes the message to the messagesArray. Limitations are that this is true only if the message is the first message in a conversation. Must check if the conversation exists then just push the message to the conversation.  I am not usre if appwrite supports a collection to be a part of an array, this would hinder my schema.
+
+// export async function sendInitialMessage(senderId, receiverId, body) {
+//   try {
+//     const messageId = ID.unique();
+//     const newMessage = await databases.createDocument(
+//       appwriteConfig.databaseId,
+//       appwriteConfig.messagesCollection,
+//       messageId,
+//       {
+//         messageId: messageId,
+//         senderId: senderId,
+//         receiverId: receiverId,
+//         body: body,
+//         timeStamp: new Date().toISOString(),
+//       }
+//     );
+
+//     await createNewConversation(senderId, receiverId, messageId);
+
+//     return newMessage;
+//   } catch (error) {
+//     throw new Error(error);
+//   }
+// }

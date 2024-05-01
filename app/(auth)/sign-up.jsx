@@ -12,6 +12,7 @@ import FormField from "../../components/FormField";
 import CustomButton from "../../components/CustomButton";
 import { router } from "expo-router";
 import { createUser } from "../../api/appwrite";
+import { useGlobalContext } from "../../context/GlobalProvider";
 
 const SignUp = () => {
   const { setUser, setIsLogged } = useGlobalContext();
@@ -80,7 +81,7 @@ const SignUp = () => {
 
             <View className="mt-4">
               <CustomButton
-                label="Login"
+                label="Sign Up"
                 handlePress={submit}
                 isLoading={isSubmitting}
                 textStyles="text-white text-lg"
