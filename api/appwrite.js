@@ -188,17 +188,16 @@ export async function createNewConversation(senderId, receiverId, messageId) {
 export async function fetchConversationsByUser() {
   try {
     const currentAccount = await getCurrentUser();
-    console.log(currentAccount);
 
-    const query = `{"filters": [{"fieldName": "senderId", "operator": "eq", "value": "${currentAccount}"}, {"fieldName": "receiverId", "operator": "eq", "value": "${currentAccount}", "or": true}]}`;
+    const query = `{"filters": [{"fieldName": "senderId", "operator": "eq", "value": "${currentAccount.accountId}"}, {"fieldName": "receiverId", "operator": "eq", "value": "${currentAccount.accountId}", "or": true}]}`;
     const conversations = await databases.listDocuments(
       appwriteConfig.databaseId,
       appwriteConfig.groupedMessagesCollection,
-      [Query.equal("senderId", `${currentAccount.$id}`)]
+      [Query.equal("senderId", `${currentAccount.accountId}`)]
     );
     // Return the list of conversation documents
-    console.log(conversations);
-    return conversations.documents[0];
+
+    return conversations.documents;
   } catch (error) {
     throw new Error(error);
   }
