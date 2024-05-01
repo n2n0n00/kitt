@@ -6,7 +6,7 @@ const Messages = () => {
   return (
     <SafeAreaView className="h-full w-full border-2 border-red-500">
       <ScrollView>
-        <View className="my-12 px-8 h-screen justify-center items-center flex-col">
+        <View className="my-12 px-4 h-screen justify-center items-center flex-col">
           <MessagesRendering />
         </View>
       </ScrollView>

@@ -13,9 +13,9 @@ const MessagesCardItem = ({ name, timer, textPreview }) => {
       <View className="flex-col items-start justify-evenly h-[70px] ">
         <View className="flex-row justify-between w-[85%]">
           <Text className="font-psemibold">{name}</Text>
-          {/* <Text className="text-gray-100 font-pregular">{timer}</Text> */}
+          <Text className="text-gray-100 font-pregular">{timer}</Text>
         </View>
-        {/* <Text className="text-gray-100 font-pregular">{textPreview}</Text> */}
+        <Text className="text-gray-100 font-pregular">{textPreview}</Text>
       </View>
     </TouchableOpacity>
   );
