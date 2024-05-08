@@ -14,7 +14,6 @@ const MessagesRendering = () => {
   const fetchConversations = async () => {
     try {
       const conversations = await fetchConversationsByUser();
-      console.log(conversations);
       setConversations(conversations);
     } catch (error) {
       console.error("Error fetching conversations:", error);
@@ -22,7 +21,7 @@ const MessagesRendering = () => {
   };
 
   return (
-    <SafeAreaView className="w-full h-full">
+    <SafeAreaView className="">
       <FlatList
         data={conversations}
         renderItem={({ item }) => (

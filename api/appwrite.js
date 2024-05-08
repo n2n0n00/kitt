@@ -40,7 +40,6 @@ const account = new Account(client);
 const avatars = new Avatars(client);
 const databases = new Databases(client);
 
-// Sign In
 export async function signIn(email, password) {
   try {
     const session = await account.createEmailSession(email, password);
@@ -51,7 +50,16 @@ export async function signIn(email, password) {
   }
 }
 
-// Register user
+export async function signOut() {
+  try {
+    const session = await account.deleteSession("current");
+
+    return session;
+  } catch (error) {
+    throw new Error(error);
+  }
+}
+
 export async function createUser(email, password, name) {
   try {
     const newAccount = await account.create(ID.unique(), email, password, name);
@@ -99,11 +107,40 @@ export async function getCurrentUser() {
   }
 }
 
-export async function signOut() {
+export async function fetchConversationsByUser() {
   try {
-    const session = await account.deleteSession("current");
+    const currentAccount = await getCurrentUser();
 
-    return session;
+    const query = `{"filters": [{"fieldName": "senderId", "operator": "eq", "value": "${currentAccount.accountId}"}, {"fieldName": "receiverId", "operator": "eq", "value": "${currentAccount.accountId}", "or": true}]}`;
+    const conversations = await databases.listDocuments(
+      appwriteConfig.databaseId,
+      appwriteConfig.groupedMessagesCollection,
+      [Query.equal("senderId", `${currentAccount.accountId}`)]
+    );
+    // Return the list of conversation documents
+
+    return conversations.documents;
+  } catch (error) {
+    throw new Error(error);
+  }
+}
+
+export async function createNewConversation(senderId, receiverId, messageId) {
+  try {
+    const conversationId = ID.unique();
+    const newConversation = await databases.createDocument(
+      appwriteConfig.databaseId,
+      appwriteConfig.groupedMessagesCollection,
+      conversationId,
+      {
+        conversationId: conversationId,
+        senderId: senderId,
+        receiverId: receiverId,
+        messageIdsArray: [messageId],
+      }
+    );
+
+    return newConversation;
   } catch (error) {
     throw new Error(error);
   }
@@ -156,7 +193,6 @@ export async function addMessageToConversation(senderId, receiverId, body) {
         }
       );
 
-      console.log(updatedMessageIds);
       return updateConversation;
     }
   } catch (error) {
@@ -164,40 +200,8 @@ export async function addMessageToConversation(senderId, receiverId, body) {
   }
 }
 
-export async function createNewConversation(senderId, receiverId, messageId) {
+export async function getConversation(conversationId) {
   try {
-    const conversationId = ID.unique();
-    const newConversation = await databases.createDocument(
-      appwriteConfig.databaseId,
-      appwriteConfig.groupedMessagesCollection,
-      conversationId,
-      {
-        conversationId: conversationId,
-        senderId: senderId,
-        receiverId: receiverId,
-        messageIdsArray: [messageId],
-      }
-    );
-
-    return newConversation;
-  } catch (error) {
-    throw new Error(error);
-  }
-}
-
-export async function fetchConversationsByUser() {
-  try {
-    const currentAccount = await getCurrentUser();
-
-    const query = `{"filters": [{"fieldName": "senderId", "operator": "eq", "value": "${currentAccount.accountId}"}, {"fieldName": "receiverId", "operator": "eq", "value": "${currentAccount.accountId}", "or": true}]}`;
-    const conversations = await databases.listDocuments(
-      appwriteConfig.databaseId,
-      appwriteConfig.groupedMessagesCollection,
-      [Query.equal("senderId", `${currentAccount.accountId}`)]
-    );
-    // Return the list of conversation documents
-
-    return conversations.documents;
   } catch (error) {
     throw new Error(error);
   }

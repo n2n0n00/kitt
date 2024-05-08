@@ -1,4 +1,4 @@
-import { View, Text, SafeAreaView, Image } from "react-native";
+import { View, Text, SafeAreaView, Image, Alert } from "react-native";
 import React, { useState } from "react";
 import { icons } from "../../constants";
 import FormField from "../../components/FormField";
@@ -37,7 +37,7 @@ const SignIn = () => {
 
   return (
     <SafeAreaView className="bg-[#FFBB7C] h-full">
-      <View className="w-full justify-around px-2 h-full my-8">
+      <View className="w-full justify-around px-2 h-full my-8 items-center">
         <Image source={icons.loginIcons} className="" />
         <View className="bg-white rounded-3xl px-4 mb-12">
           <View>

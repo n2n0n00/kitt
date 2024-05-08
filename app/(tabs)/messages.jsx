@@ -5,11 +5,9 @@ import MessagesRendering from "../../components/MessagesRendering";
 const Messages = () => {
   return (
     <SafeAreaView className="h-full w-full border-2 border-red-500">
-      <ScrollView>
-        <View className="my-12 px-4 h-screen justify-center items-center flex-col">
-          <MessagesRendering />
-        </View>
-      </ScrollView>
+      <View className="my-12 px-4 h-screen justify-center items-center flex-col">
+        <MessagesRendering />
+      </View>
     </SafeAreaView>
   );
 };
