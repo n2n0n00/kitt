@@ -144,14 +144,32 @@ export async function fetchConversationsByUser() {
       // [Query.equal("senderId", `${currentAccount.accountId}`)]
     );
 
-    const receiverIdExtracted = conversations.documents[0].receiverId;
-    const userData = await getNameByUserId(receiverIdExtracted);
-    // console.log(await userData);
-    // console.log(receiverIdExtracted);
-
     const userConversationDocuments = conversations.documents;
 
-    return [{ userConversationDocuments, userData }];
+    const users = await Promise.all(
+      userConversationDocuments.map(async (item) => {
+        let userData;
+        let receiverIdExtracted;
+
+        if (currentAccount.accountId === item.receiverId) {
+          receiverIdExtracted = item.senderId;
+          userData = await getNameByUserId(receiverIdExtracted);
+        }
+
+        if (currentAccount.accountId === item.senderId) {
+          receiverIdExtracted = item.receiverId;
+          userData = await getNameByUserId(receiverIdExtracted);
+        }
+
+        return userData; // Return the userData for Promise.all
+      })
+    );
+
+    // const receiverIdExtracted = conversations.documents[0].senderId;
+    // const userData = await getNameByUserId(receiverIdExtracted);
+    // console.log(await userData);
+    // console.log(receiverIdExtracted);
+    return [{ userConversationDocuments, users }];
     // return conversations.documents;
   } catch (error) {
     throw new Error(error);

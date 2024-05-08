@@ -24,15 +24,22 @@ const MessagesRendering = () => {
     <SafeAreaView className="">
       <FlatList
         data={conversations}
-        renderItem={({ item, index }) => (
-          <MessagesCardItem
-            name={item.userData.userName}
-            timer={item.userConversationDocuments[index].$updatedAt}
-            textPreview={item.userConversationDocuments[index].conversationId}
-            avatar={item.userData.userAvatar}
-          />
+        renderItem={({ item }) => (
+          <>
+            {item.users.map((user, userIndex) => (
+              <MessagesCardItem
+                key={`user-${userIndex}`}
+                name={user.userName}
+                timer={item.userConversationDocuments[userIndex].$updatedAt}
+                textPreview={
+                  item.userConversationDocuments[userIndex].conversationId
+                }
+                avatar={user.userAvatar}
+              />
+            ))}
+          </>
         )}
-        keyExtractor={(item) => item.userData.userName}
+        keyExtractor={(item, userIndex) => item.users[userIndex].userName}
         ItemSeparatorComponent={() => <View />}
         // ListEmptyComponent={() => (
         //   <EmptyState
