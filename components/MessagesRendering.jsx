@@ -47,11 +47,6 @@ const MessagesRendering = () => {
         //     subtitle="No Conversations found for this profile"
         //   />
         // )}
-        ListHeaderComponent={() => (
-          <View>
-            <Text>Header</Text>
-          </View>
-        )}
       />
     </SafeAreaView>
   );

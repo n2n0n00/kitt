@@ -14,6 +14,8 @@ import loginIcons from "../assets/icons/loginIcons.png";
 import eyeHide from "../assets/icons/eye-hide.png";
 import eye from "../assets/icons/eye.png";
 import signup from "../assets/icons/signup.png";
+import settings from "../assets/icons/settings.png";
+import notifications from "../assets/icons/notifications.png";
 
 export default {
   feed,
@@ -32,4 +34,6 @@ export default {
   eyeHide,
   eye,
   signup,
+  settings,
+  notifications,
 };
