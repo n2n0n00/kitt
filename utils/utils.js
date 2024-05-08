@@ -14,7 +14,7 @@ export function formatTime(timer) {
   let minutes = localDate.getMinutes().toString().padStart(2, "0");
 
   // Format date and time strings
-  let dateString = `${day}-${month}-${year}`;
+  let dateString = `${day}/${month}/${year}`;
   let timeString = `${hours}:${minutes}`;
 
   let dateTime = `${dateString} ${timeString}`;

@@ -107,19 +107,52 @@ export async function getCurrentUser() {
   }
 }
 
+export async function getNameByUserId(userId) {
+  try {
+    const userDocuments = await databases.listDocuments(
+      databaseId,
+      usersCollection,
+      [Query.equal("accountId", `${userId}`)]
+    );
+
+    if (userDocuments.length === 0) {
+      throw new Error(`User with userId ${userId} not found.`);
+    }
+
+    // Assuming the user document contains a field named "name"
+    const userName = userDocuments.documents[0].name;
+    const userAvatar = userDocuments.documents[0].avatar;
+
+    return {
+      userName,
+      userAvatar,
+    };
+  } catch (error) {
+    throw new Error(error);
+  }
+}
+
 export async function fetchConversationsByUser() {
   try {
     const currentAccount = await getCurrentUser();
 
     const query = `{"filters": [{"fieldName": "senderId", "operator": "eq", "value": "${currentAccount.accountId}"}, {"fieldName": "receiverId", "operator": "eq", "value": "${currentAccount.accountId}", "or": true}]}`;
     const conversations = await databases.listDocuments(
-      appwriteConfig.databaseId,
-      appwriteConfig.groupedMessagesCollection,
-      [Query.equal("senderId", `${currentAccount.accountId}`)]
+      databaseId,
+      groupedMessagesCollection,
+      query
+      // [Query.equal("senderId", `${currentAccount.accountId}`)]
     );
-    // Return the list of conversation documents
 
-    return conversations.documents;
+    const receiverIdExtracted = conversations.documents[0].receiverId;
+    const userData = await getNameByUserId(receiverIdExtracted);
+    // console.log(await userData);
+    // console.log(receiverIdExtracted);
+
+    const userConversationDocuments = conversations.documents;
+
+    return [{ userConversationDocuments, userData }];
+    // return conversations.documents;
   } catch (error) {
     throw new Error(error);
   }
@@ -176,7 +209,7 @@ export async function addMessageToConversation(senderId, receiverId, body) {
     } else {
       const conversationData = conversations.documents[0];
 
-      const existingMessageIds = conversationData.messageIdsArray; // Assume you fetch existing messageIdsArray from the database
+      const existingMessageIds = conversationData.messageIdsArray;
 
       // Append the new messageId to the existing array using the spread operator
       const updatedMessageIds = [...existingMessageIds, messageId];
