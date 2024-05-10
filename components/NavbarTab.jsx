@@ -6,7 +6,7 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 
 const NavbarTab = () => {
   return (
-    <View className="flex-row items-center justify-between w-full mt-10">
+    <View className="flex-row items-center justify-between w-full mt-2">
       <TouchableOpacity activeOpacity={0.5}>
         <Link className="flex items-center justify-center" href={"/settings"}>
           <MaterialCommunityIcons

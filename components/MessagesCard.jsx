@@ -16,7 +16,7 @@ const MessagesCardItem = ({ name, timer, textPreview, avatar }) => {
         />
       </View>
       <View className="flex-col items-start justify-evenly h-[70px] mb-2">
-        <View className="flex-row justify-between w-[85%]">
+        <View className="flex-row justify-between w-[84%]">
           <Text className="font-psemibold">{name}</Text>
           <Text className="text-gray-100 font-pregular w-[100px] text-right">
             {timeDate}

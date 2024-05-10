@@ -39,6 +39,10 @@ const RootLayout = () => {
         {/* //remove ugly expo header */}
         <Stack.Screen name="(auth)" options={{ headerShown: false }} />
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        <Stack.Screen
+          name="searchMessages/[query]"
+          options={{ headerShown: false }}
+        />
       </Stack>
     </GlobalProvider>
   );
