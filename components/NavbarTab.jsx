@@ -1,22 +1,35 @@
-import { View, Text, Image } from "react-native";
-import React from "react";
+import { View, Text, Image, TouchableOpacity } from "react-native";
+import React, { useState } from "react";
 import { Link } from "expo-router";
-import { icons } from "../constants";
+import Ionicons from "@expo/vector-icons/Ionicons";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 
 const NavbarTab = () => {
   return (
-    <View className="flex-row items-center justify-center  w-screen border-2 border-red-500">
-      <View>
-        <Link href={"/settings"}>
-          <Image source={icons.settings} />
+    <View className="flex-row items-center justify-between w-full mt-10">
+      <TouchableOpacity activeOpacity={0.5}>
+        <Link className="flex items-center justify-center" href={"/settings"}>
+          <MaterialCommunityIcons
+            name="microsoft-xbox-controller-menu"
+            size={38}
+            color="#1E5860"
+          />
         </Link>
-      </View>
-      <Text>Messages</Text>
-      <View>
-        <Link href={"/notifications"}>
-          <Image source={icons.notifications} />
+      </TouchableOpacity>
+
+      <Text className="text-secondary-200 font-medium text-xl">Messages</Text>
+      <TouchableOpacity activeOpacity={0.5}>
+        <Link
+          href={"/notifications"}
+          className="flex items-center justify-center"
+        >
+          <Ionicons
+            name="notifications-circle-outline"
+            size={38}
+            color="#1E5860"
+          />
         </Link>
-      </View>
+      </TouchableOpacity>
     </View>
   );
 };

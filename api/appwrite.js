@@ -258,6 +258,76 @@ export async function getConversation(conversationId) {
   }
 }
 
+export async function fetchConversationsByUserSearch(querySearch) {
+  try {
+    const currentAccount = await getCurrentUser();
+
+    // Constructing the query for conversations
+    const query = `{"filters": [{"fieldName": "senderId", "operator": "eq", "value": "${currentAccount.accountId}"}, {"fieldName": "receiverId", "operator": "eq", "value": "${currentAccount.accountId}", "or": true}]}`;
+
+    // Fetch conversations
+    const conversations = await databases.listDocuments(
+      databaseId,
+      groupedMessagesCollection,
+      query
+    );
+
+    // Fetch users by name search
+    const searchedUser = await databases.listDocuments(
+      databaseId,
+      usersCollection,
+      [Query.search("name", querySearch)]
+    );
+
+    // Extract user IDs
+    const userIds = searchedUser.documents
+      .filter((item) => item.accountId !== currentAccount.accountId)
+      .map((item) => item.accountId);
+
+    // Function to filter conversations by users
+    const searchedArrayConversations = () => {
+      const userConversations = [];
+      for (const user of userIds) {
+        for (const conversation of conversations.documents) {
+          // Ensure conversations is an array
+          if (
+            user === conversation.senderId ||
+            user === conversation.receiverId
+          ) {
+            userConversations.push(conversation);
+          }
+        }
+      }
+      return userConversations;
+    };
+
+    const userConversationDocuments = searchedArrayConversations();
+
+    const users = await Promise.all(
+      userConversationDocuments.map(async (item) => {
+        let userData;
+        let receiverIdExtracted;
+
+        if (currentAccount.accountId === item.receiverId) {
+          receiverIdExtracted = item.senderId;
+          userData = await getNameByUserId(receiverIdExtracted);
+        }
+
+        if (currentAccount.accountId === item.senderId) {
+          receiverIdExtracted = item.receiverId;
+          userData = await getNameByUserId(receiverIdExtracted);
+        }
+
+        return userData; // Return the userData for Promise.all
+      })
+    );
+    console.log(userConversationDocuments, users);
+    return [{ userConversationDocuments, users }];
+  } catch (error) {
+    throw new Error(error);
+  }
+}
+
 //we send the message to the collection, the createConversation takes the senderId and the receiverId and the newMessage and creates a new conversation with an conversationId, receiver and senderId and pushes the message to the messagesArray. Limitations are that this is true only if the message is the first message in a conversation. Must check if the conversation exists then just push the message to the conversation.  I am not usre if appwrite supports a collection to be a part of an array, this would hinder my schema.
 
 // export async function sendInitialMessage(senderId, receiverId, body) {

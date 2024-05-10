@@ -1,27 +1,27 @@
-import { View, Text, FlatList, RefreshControl } from "react-native";
-import React, { useEffect, useState } from "react";
-import MessagesCardItem from "./MessagesCard";
-import { fetchConversationsByUser } from "../api/appwrite";
+import { View, Text, FlatList } from "react-native";
+import React, { useEffect } from "react";
+import { useLocalSearchParams } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-const MessagesRendering = () => {
-  const [conversations, setConversations] = useState([]);
+import useAppwrite from "../../api/useAppwrite";
+
+import { fetchConversationsByUserSearch } from "../../api/appwrite";
+import MessagesCardItem from "../../components/MessagesCard";
+
+const Search = () => {
+  const { query } = useLocalSearchParams();
+  //to call the function put it into a callback
+  const {
+    data: conversations = [{ userConversationDocuments, users }],
+    refetch,
+  } = useAppwrite(() => fetchConversationsByUserSearch(query));
 
   useEffect(() => {
-    fetchConversations();
-  }, []);
-
-  const fetchConversations = async () => {
-    try {
-      const conversationsData = await fetchConversationsByUser();
-      setConversations(conversationsData);
-    } catch (error) {
-      console.error("Error fetching conversations:", error);
-    }
-  };
+    refetch();
+  }, [query]);
 
   return (
-    <SafeAreaView>
+    <SafeAreaView className="">
       <FlatList
         data={conversations}
         renderItem={({ item }) => (
@@ -52,4 +52,4 @@ const MessagesRendering = () => {
   );
 };
 
-export default MessagesRendering;
+export default Search;
