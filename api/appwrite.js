@@ -165,10 +165,6 @@ export async function fetchConversationsByUser() {
       })
     );
 
-    // const receiverIdExtracted = conversations.documents[0].senderId;
-    // const userData = await getNameByUserId(receiverIdExtracted);
-    // console.log(await userData);
-    // console.log(receiverIdExtracted);
     return [{ userConversationDocuments, users }];
     // return conversations.documents;
   } catch (error) {
@@ -321,7 +317,7 @@ export async function fetchConversationsByUserSearch(querySearch) {
         return userData; // Return the userData for Promise.all
       })
     );
-    console.log(userConversationDocuments, users);
+
     return [{ userConversationDocuments, users }];
   } catch (error) {
     throw new Error(error);

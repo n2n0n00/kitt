@@ -1,13 +1,34 @@
-import { View, Text, TouchableOpacity, Image } from "react-native";
+import { View, Text, TouchableOpacity, Image, Alert } from "react-native";
 import React from "react";
 import { formatTime } from "../utils/utils";
+import { router, usePathname } from "expo-router";
 
-const MessagesCardItem = ({ name, timer, textPreview, avatar }) => {
+const MessagesCardItem = ({
+  name,
+  timer,
+  textPreview,
+  avatar,
+  collectionId,
+}) => {
   let timeDate = formatTime(timer);
+
+  const pathname = usePathname();
+
   return (
     <TouchableOpacity
       className="relative flex-row justify-start gap-4 items-center mb-8 border-b-[1px] border-[#D9D9D9]"
       activeOpacity={0.5}
+      onPress={() => {
+        if (!collectionId) {
+          return Alert.alert("Missing conversation", "Try again!");
+        }
+
+        if (pathname.startsWith("/(conversations)")) {
+          router.setParams({ collectionId });
+        } else {
+          router.push(`/(conversations)/${collectionId}`);
+        }
+      }}
     >
       <View className="w-[70px] h-[70px] rounded-full bg-[#fff] border-2 border-[#BC67FF] items-center justify-center mb-2">
         <Image

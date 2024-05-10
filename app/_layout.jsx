@@ -43,6 +43,10 @@ const RootLayout = () => {
           name="searchMessages/[query]"
           options={{ headerShown: false }}
         />
+        <Stack.Screen
+          name="(conversations)/[conversation]"
+          options={{ headerShown: false }}
+        />
       </Stack>
     </GlobalProvider>
   );

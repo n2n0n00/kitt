@@ -42,6 +42,9 @@ const searchMessages = () => {
                   textPreview={
                     item.userConversationDocuments[userIndex].conversationId
                   }
+                  collectionId={
+                    item.userConversationDocuments[userIndex].$collectionId
+                  }
                   avatar={user.userAvatar}
                 />
               ))}
