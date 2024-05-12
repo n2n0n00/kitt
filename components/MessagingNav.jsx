@@ -19,8 +19,11 @@ const MessagingNav = ({ avatar, statusLabel, name }) => {
           </TouchableOpacity>
 
           <View className="flex-row ml-2">
-            <View className="bg-gray-500 rounded-full h-[50px] w-[50px]">
-              <Image source={avatar} />
+            <View className="items-center justify-center">
+              <Image
+                className="w-[60px] h-[60px] rounded-full"
+                source={{ uri: avatar }}
+              />
             </View>
             <View className="ml-2">
               <Text className="font-medium text-lg">{name}</Text>

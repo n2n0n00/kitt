@@ -122,10 +122,12 @@ export async function getNameByUserId(userId) {
     // Assuming the user document contains a field named "name"
     const userName = userDocuments.documents[0].name;
     const userAvatar = userDocuments.documents[0].avatar;
+    const userAccountId = userDocuments.documents[0].accountId;
 
     return {
       userName,
       userAvatar,
+      userAccountId,
     };
   } catch (error) {
     throw new Error(error);
@@ -247,13 +249,6 @@ export async function addMessageToConversation(senderId, receiverId, body) {
   }
 }
 
-export async function getConversation(conversationId) {
-  try {
-  } catch (error) {
-    throw new Error(error);
-  }
-}
-
 export async function fetchConversationsByUserSearch(querySearch) {
   try {
     const currentAccount = await getCurrentUser();
@@ -319,6 +314,20 @@ export async function fetchConversationsByUserSearch(querySearch) {
     );
 
     return [{ userConversationDocuments, users }];
+  } catch (error) {
+    throw new Error(error);
+  }
+}
+
+export async function fetchMessagesByConversationId(conversationId) {
+  try {
+    const conversation = await databases.listDocuments(
+      databaseId,
+      groupedMessagesCollection,
+      [Query.equal("conversationId", `${conversationId}`)]
+    );
+
+    return conversation.documents;
   } catch (error) {
     throw new Error(error);
   }

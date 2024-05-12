@@ -8,6 +8,7 @@ const MessagesCardItem = ({
   timer,
   textPreview,
   avatar,
+  userId,
   collectionId,
 }) => {
   let timeDate = formatTime(timer);
@@ -23,10 +24,10 @@ const MessagesCardItem = ({
           return Alert.alert("Missing conversation", "Try again!");
         }
 
-        if (pathname.startsWith("/(conversations)")) {
+        if (pathname.startsWith(`/(conversations)/${userId}`)) {
           router.setParams({ collectionId });
         } else {
-          router.push(`/(conversations)/${collectionId}`);
+          router.push(`/(conversations)/${userId}/${collectionId}`);
         }
       }}
     >

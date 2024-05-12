@@ -44,7 +44,7 @@ const RootLayout = () => {
           options={{ headerShown: false }}
         />
         <Stack.Screen
-          name="(conversations)/[conversation]"
+          name="(conversations)/[user]/[conversation]"
           options={{ headerShown: false }}
         />
       </Stack>

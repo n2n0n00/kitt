@@ -35,9 +35,10 @@ const MessagesRendering = () => {
                   item.userConversationDocuments[userIndex].conversationId
                 }
                 collectionId={
-                  item.userConversationDocuments[userIndex].$collectionId
+                  item.userConversationDocuments[userIndex].conversationId
                 }
                 avatar={user.userAvatar}
+                userId={user.userAccountId}
               />
             ))}
           </>
