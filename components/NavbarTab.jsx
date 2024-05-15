@@ -17,7 +17,7 @@ const NavbarTab = () => {
         </Link>
       </TouchableOpacity>
 
-      <Text className="text-secondary-200 font-medium text-xl">Messages</Text>
+      <Text className="text-secondary-200 font-pmedium text-xl">Messages</Text>
       <TouchableOpacity activeOpacity={0.5}>
         <Link
           href={"/notifications"}

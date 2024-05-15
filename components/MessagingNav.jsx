@@ -26,7 +26,7 @@ const MessagingNav = ({ avatar, statusLabel, name }) => {
               />
             </View>
             <View className="ml-2">
-              <Text className="font-medium text-lg">{name}</Text>
+              <Text className="font-pmedium text-lg">{name}</Text>
               <View className="flex-row items-center justify-start ">
                 <View
                   className={`${
@@ -35,7 +35,9 @@ const MessagingNav = ({ avatar, statusLabel, name }) => {
                       : "bg-red-500 rounded-full h-[10px] w-[10px]"
                   }`}
                 />
-                <Text className="text-[#52697E] ml-1">{statusLabel}</Text>
+                <Text className="text-[#52697E] ml-1 font-pregular">
+                  {statusLabel}
+                </Text>
               </View>
             </View>
           </View>

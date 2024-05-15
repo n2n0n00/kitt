@@ -333,6 +333,31 @@ export async function fetchMessagesByConversationId(conversationId) {
   }
 }
 
+export async function fetchMessagebyId(messageIds) {
+  try {
+    const conversationArray = async () => {
+      const messageArray = [];
+      for (const messageId of messageIds) {
+        const message = await databases.listDocuments(
+          databaseId,
+          messagesCollection,
+          [Query.equal("messageId", messageId)]
+        );
+
+        messageArray.push(message.documents[0].body);
+      }
+
+      return messageArray;
+    };
+
+    const totalMessages = await conversationArray();
+
+    return totalMessages;
+  } catch (error) {
+    throw new Error(error);
+  }
+}
+
 //we send the message to the collection, the createConversation takes the senderId and the receiverId and the newMessage and creates a new conversation with an conversationId, receiver and senderId and pushes the message to the messagesArray. Limitations are that this is true only if the message is the first message in a conversation. Must check if the conversation exists then just push the message to the conversation.  I am not usre if appwrite supports a collection to be a part of an array, this would hinder my schema.
 
 // export async function sendInitialMessage(senderId, receiverId, body) {

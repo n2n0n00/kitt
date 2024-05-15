@@ -11,7 +11,6 @@ import {
 
 const Conversation = () => {
   const conversationId = useLocalSearchParams();
-  console.log(conversationId);
 
   const [conversation, setConversation] = useState(null);
   const [userData, setUserData] = useState(null);
@@ -37,7 +36,6 @@ const Conversation = () => {
   return (
     <SafeAreaView className="h-full w-full bg-white">
       <View className="pt-16 px-2 h-screen justify-start items-center flex-col">
-        {/* Render MessagingNav and ConversationRendering components once data is fetched */}
         {userData && conversation && (
           <>
             <MessagingNav

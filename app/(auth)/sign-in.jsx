@@ -98,7 +98,9 @@ const SignIn = () => {
               />
             </View> */}
             <View className="flex-row justify-center items-center">
-              <Text className="text-lg">Don't have an account?</Text>
+              <Text className="text-lg font-pregular">
+                Don't have an account?
+              </Text>
               <CustomButton
                 label="Sign Up"
                 handlePress={() => router.push("./sign-up")}
