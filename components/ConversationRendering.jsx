@@ -15,30 +15,23 @@ const ConversationRendering = ({ conversation }) => {
   const userId = user.accountId;
 
   useEffect(() => {
-    if (conversation && conversation.length > 0) {
-      fetchMessages(conversation[0].messageIdsArray);
-      console.log(conversations);
-    }
+    fetchMessages();
   }, [conversation]);
 
-  // useEffect(() => {
-  //   fetchMessages();
-  //   console.log(conversations);
-  // }, [conversations]);
-
-  const fetchMessages = async (messageIds) => {
+  const fetchMessages = async () => {
     try {
-      // const messageIds = await conversation[0].messageIdsArray;
+      const messageIds = await conversation[0].messageIdsArray;
 
-      const conversationsData = await fetchMessagebyId(await messageIds);
-
+      const conversationsData = await fetchMessagebyId(messageIds);
       setConversations(conversationsData);
 
       if (conversations === undefined) {
-        setLoading(true);
-      } else {
         setLoading(false);
       }
+
+      // if (loading === true) {
+      //   setLoading(false);
+      // }
     } catch (error) {
       console.error("Error fetching conversations:", error);
     }
@@ -53,17 +46,19 @@ const ConversationRendering = ({ conversation }) => {
           ) : conversations === undefined ? (
             <></>
           ) : (
-            conversations.map((item, index) => {
-              item.senderId === userId ? (
-                <View key={index} className="mb-4 items-end">
-                  <ConversationBubbleRight body={item.body} />
-                </View>
-              ) : (
-                <View key={index} className="mb-4 items-start">
-                  <ConversationBubbleLeft body={item.body} />
-                </View>
-              );
-            })
+            conversations.map((item, index) => (
+              <View key={index}>
+                {item.senderId === userId ? (
+                  <View className="mb-4 items-end">
+                    <ConversationBubbleRight body={item.body} />
+                  </View>
+                ) : (
+                  <View className="mb-4 items-start">
+                    <ConversationBubbleLeft body={item.body} />
+                  </View>
+                )}
+              </View>
+            ))
           )}
         </ScrollView>
       </View>
