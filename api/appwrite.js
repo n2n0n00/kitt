@@ -337,6 +337,7 @@ export async function fetchMessagebyId(messageIds) {
   try {
     const conversationArray = async () => {
       const messageArray = [];
+      const messageSenders = [];
       for (const messageId of messageIds) {
         const message = await databases.listDocuments(
           databaseId,
@@ -345,9 +346,20 @@ export async function fetchMessagebyId(messageIds) {
         );
 
         messageArray.push(message.documents[0].body);
+        messageSenders.push(message.documents[0].senderId);
       }
 
-      return messageArray;
+      const messages = [];
+
+      for (let i = 0; i < messageArray.length; i++) {
+        const messageObject = {
+          senderId: messageSenders[i],
+          body: messageArray[i],
+        };
+        messages.push(messageObject);
+      }
+      return messages;
+      // return [{ messageArray, messageSenders }];
     };
 
     const totalMessages = await conversationArray();

@@ -6,28 +6,39 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import ConversationBubbleRight from "./ConversationBubbleRight";
 import ConversationBubbleLeft from "./ConversationBubble";
 import { fetchMessagebyId } from "../api/appwrite";
+import { useGlobalContext } from "../context/GlobalProvider";
 
-const ConversationRendering = ({
-  conversation,
-  userData,
-  senderId,
-  userId,
-}) => {
+const ConversationRendering = ({ conversation }) => {
+  const { user } = useGlobalContext();
   const [conversations, setConversations] = useState();
+  const [loading, setLoading] = useState(true);
+  const userId = user.accountId;
 
   useEffect(() => {
-    fetchMessages();
-  }, []);
+    if (conversation && conversation.length > 0) {
+      fetchMessages(conversation[0].messageIdsArray);
+      console.log(conversations);
+    }
+  }, [conversation]);
 
-  const fetchMessages = async () => {
+  // useEffect(() => {
+  //   fetchMessages();
+  //   console.log(conversations);
+  // }, [conversations]);
+
+  const fetchMessages = async (messageIds) => {
     try {
-      const messageIds = conversation[0].messageIdsArray;
+      // const messageIds = await conversation[0].messageIdsArray;
 
       const conversationsData = await fetchMessagebyId(await messageIds);
 
       setConversations(conversationsData);
 
-      console.log(conversations);
+      if (conversations === undefined) {
+        setLoading(true);
+      } else {
+        setLoading(false);
+      }
     } catch (error) {
       console.error("Error fetching conversations:", error);
     }
@@ -37,15 +48,22 @@ const ConversationRendering = ({
     <SafeAreaView className="flex-col bg-[#FAFDFF] items-center justify-start w-full h-[84vh]">
       <View className="w-full h-[92%] p-2 absolute top-0">
         <ScrollView>
-          {}
-          {senderId === userId ? (
-            <View className="mb-4 items-end">
-              <ConversationBubbleRight />
-            </View>
+          {loading ? (
+            <Text>Loading...</Text>
+          ) : conversations === undefined ? (
+            <></>
           ) : (
-            <View className="mb-4 items-start">
-              <ConversationBubbleLeft />
-            </View>
+            conversations.map((item, index) => {
+              item.senderId === userId ? (
+                <View key={index} className="mb-4 items-end">
+                  <ConversationBubbleRight body={item.body} />
+                </View>
+              ) : (
+                <View key={index} className="mb-4 items-start">
+                  <ConversationBubbleLeft body={item.body} />
+                </View>
+              );
+            })
           )}
         </ScrollView>
       </View>
