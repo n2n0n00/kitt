@@ -9,6 +9,8 @@ import {
   getNameByUserId,
 } from "../../../api/appwrite";
 
+// Note: would have been better if I pushed locally and the saved to the server and fetched at every render? Will look into it for version 2
+
 const Conversation = () => {
   const conversationId = useLocalSearchParams();
 

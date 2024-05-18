@@ -6,7 +6,7 @@ import {
   Alert,
   TouchableOpacity,
 } from "react-native";
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useLayoutEffect } from "react";
 import Feather from "@expo/vector-icons/Feather";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -47,17 +47,16 @@ const ConversationRendering = ({ conversation, userData }) => {
       fetchMessages();
     }, 5000);
 
-    fetchMessages(); // Initial call
-
-    if (scrollViewRef.current) {
-      scrollViewRef.current.scrollToEnd({ animated: true });
-    }
-
+    fetchMessages();
     // Clean up the interval on component unmount
     return () => clearInterval(intervalId);
   }, [conversation]);
 
-  //the problem is that there is no constant return from the database collection so to solve theoritically I have to call on the database multiple times with a setInterval
+  useLayoutEffect(() => {
+    if (scrollViewRef.current) {
+      scrollViewRef.current.scrollToEnd({ animated: true });
+    }
+  }, [conversation]);
 
   // useEffect(() => {
   //   fetchMessages();
@@ -109,7 +108,7 @@ const ConversationRendering = ({ conversation, userData }) => {
       <View className="w-full h-[92%] p-2 absolute top-0">
         <ScrollView ref={scrollViewRef}>
           {initialLoading ? (
-            <Text>Loading...</Text>
+            <Text className="text-">Loading...</Text>
           ) : conversations === undefined ? (
             <></>
           ) : (
