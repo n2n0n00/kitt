@@ -7,6 +7,7 @@ import {
   Query,
   Storage,
 } from "react-native-appwrite";
+import { formatTime } from "../utils/utils";
 
 export const appwriteConfig = {
   endpoint: "https://cloud.appwrite.io/v1",
@@ -174,78 +175,165 @@ export async function fetchConversationsByUser() {
   }
 }
 
-export async function createNewConversation(senderId, receiverId, messageId) {
+export async function createNewConversation(receiverId, messageId) {
   try {
-    const conversationId = ID.unique();
+    const currentUserObject = await getCurrentUser();
+    const currentUser = currentUserObject.accountId;
+    const conversationId = Date.now().toString();
     const newConversation = await databases.createDocument(
       appwriteConfig.databaseId,
       appwriteConfig.groupedMessagesCollection,
-      conversationId,
+      ID.unique(),
       {
         conversationId: conversationId,
-        senderId: senderId,
+        senderId: currentUser,
         receiverId: receiverId,
-        messageIdsArray: [messageId],
+        messageIdsArray: [messageId], // Should be an array
       }
     );
 
     return newConversation;
   } catch (error) {
-    throw new Error(error);
+    throw new Error(`Failed to create new conversation: ${error.message}`);
   }
 }
 
-export async function addMessageToConversation(senderId, receiverId, body) {
+async function fetchAndFilterConversations(currentAccount, receiverId) {
   try {
-    const messageId = ID.unique();
+    // Fetch all conversations
+    const conversations = await databases.listDocuments(
+      appwriteConfig.databaseId,
+      appwriteConfig.groupedMessagesCollection
+    );
+
+    // Filter conversations based on the given criteria
+    const filteredConversations = conversations.documents.filter((doc) => {
+      return (
+        (doc.senderId === currentAccount && doc.receiverId === receiverId) ||
+        (doc.senderId === receiverId && doc.receiverId === currentAccount)
+      );
+    });
+
+    if (filteredConversations.length > 0) {
+      filteredConversations.forEach((doc) => {
+        console.log("Filtered Conversation:", doc);
+        // Process each filtered conversation document as needed
+      });
+    } else {
+      console.log("No matching conversations found.");
+    }
+  } catch (error) {
+    console.error("Error fetching conversations:", error);
+  }
+}
+
+export async function addMessageToConversation(receiverId, body) {
+  try {
+    const currentUserObject = await getCurrentUser();
+    const currentUser = currentUserObject.accountId;
+    const messageId = Date.now().toString();
     const newMessage = await databases.createDocument(
       appwriteConfig.databaseId,
       appwriteConfig.messagesCollection,
-      messageId,
+      ID.unique(),
       {
         messageId: messageId,
-        senderId: senderId,
+        senderId: currentUser,
         receiverId: receiverId,
         body: body,
         timeStamp: new Date().toISOString(),
       }
     );
 
-    const query = `{"filters": [{"fieldName": "senderId", "operator": "eq", "value": "${senderId}"}, {"fieldName": "receiverId", "operator": "eq", "value": "${receiverId}"}]}`;
-    const conversations = await sdk.database.listDocuments(
-      "groupedMessagesCollection",
-      undefined,
-      undefined,
-      query
+    // const query = `{
+    //   filters: [
+    //     {
+    //       operator: "or",
+    //       filters: [
+    //         {
+    //           operator: "and",
+    //           filters: [
+    //             {
+    //               fieldName: "senderId",
+    //               operator: "eq",
+    //               value: ${currentUser},
+    //             },
+    //             {
+    //               fieldName: "receiverId",
+    //               operator: "eq",
+    //               value: ${receiverId},
+    //             },
+    //           ],
+    //         },
+    //         {
+    //           operator: "and",
+    //           filters: [
+    //             {
+    //               fieldName: "senderId",
+    //               operator: "eq",
+    //               value: ${receiverId},
+    //             },
+    //             {
+    //               fieldName: "receiverId",
+    //               operator: "eq",
+    //               value: ${currentUser},
+    //             },
+    //           ],
+    //         },
+    //       ],
+    //     },
+    //   ],
+    // }`;
+
+    // let conversations = await databases.listDocuments(
+    //   appwriteConfig.databaseId,
+    //   appwriteConfig.groupedMessagesCollection,
+    //   query // Ensure the query is parsed correctly
+    // );
+    // console.log(receiverId);
+    // console.log(conversations);
+
+    const conversations = await databases.listDocuments(
+      appwriteConfig.databaseId,
+      appwriteConfig.groupedMessagesCollection
     );
 
-    if (!conversations) {
-      await createNewConversation(senderId, receiverId, messageId);
-      return newMessage;
-    } else {
-      const conversationData = conversations.documents[0];
+    const conversation = conversations.documents.filter((doc) => {
+      return (
+        (doc.senderId === currentUser && doc.receiverId === receiverId) ||
+        (doc.senderId === receiverId && doc.receiverId === currentUser)
+      );
+    });
 
+    if (!conversation.length) {
+      const newConversation = await createNewConversation(
+        receiverId,
+        messageId
+      );
+      return newConversation;
+    } else {
+      const conversationData = conversation[0];
       const existingMessageIds = conversationData.messageIdsArray;
 
-      // Append the new messageId to the existing array using the spread operator
+      // Append the new messageId to the existing array
       const updatedMessageIds = [...existingMessageIds, messageId];
 
-      const updateConversation = await databases.updateDocument(
+      const updatedConversation = await databases.updateDocument(
         appwriteConfig.databaseId,
         appwriteConfig.groupedMessagesCollection,
-        conversationData.conversationId,
+        conversationData.$id, // Use $id for document identifier
         {
           conversationId: conversationData.conversationId,
-          senderId: senderId,
-          receiverId: receiverId,
+          senderId: conversationData.senderId,
+          receiverId: conversationData.receiverId,
           messageIdsArray: updatedMessageIds,
         }
       );
 
-      return updateConversation;
+      return updatedConversation;
     }
   } catch (error) {
-    throw new Error(error);
+    throw new Error(`Failed to add message to conversation: ${error.message}`);
   }
 }
 
@@ -338,6 +426,7 @@ export async function fetchMessagebyId(messageIds) {
     const conversationArray = async () => {
       const messageArray = [];
       const messageSenders = [];
+      const messageTimer = [];
       for (const messageId of messageIds) {
         const message = await databases.listDocuments(
           databaseId,
@@ -347,6 +436,7 @@ export async function fetchMessagebyId(messageIds) {
 
         messageArray.push(message.documents[0].body);
         messageSenders.push(message.documents[0].senderId);
+        messageTimer.push(formatTime(message.documents[0].timeStamp));
       }
 
       const messages = [];
@@ -355,6 +445,7 @@ export async function fetchMessagebyId(messageIds) {
         const messageObject = {
           senderId: messageSenders[i],
           body: messageArray[i],
+          timeStamp: messageTimer[i],
         };
         messages.push(messageObject);
       }
@@ -370,6 +461,125 @@ export async function fetchMessagebyId(messageIds) {
   }
 }
 
+// export async function createNewConversation(receiverId, messageId) {
+//   try {
+//     const currentUserObject = await getCurrentUser();
+//     const currentUser = currentUserObject.accountId;
+//     const conversationId = ID.unique();
+//     const newConversation = await databases.createDocument(
+//       appwriteConfig.databaseId,
+//       appwriteConfig.groupedMessagesCollection,
+//       conversationId,
+//       {
+//         conversationId: conversationId,
+//         senderId: currentUser,
+//         receiverId: receiverId,
+//         messageIdsArray: messageId,
+//       }
+//     );
+
+//     return newConversation;
+//   } catch (error) {
+//     throw new Error(error);
+//   }
+// }
+
+// export async function addMessageToConversation(receiverId, body) {
+//   try {
+//     const currentUserObject = await getCurrentUser();
+//     const currentUser = currentUserObject.accountId;
+//     const messageId = ID.unique();
+//     const newMessage = await databases.createDocument(
+//       appwriteConfig.databaseId,
+//       appwriteConfig.messagesCollection,
+//       messageId,
+//       {
+//         messageId: messageId,
+//         senderId: currentUser,
+//         receiverId: receiverId,
+//         body: body,
+//         timeStamp: new Date().toISOString(),
+//       }
+//     );
+
+//     console.log(newMessage);
+
+//     // const query = `{"filters": [{"fieldName": "senderId", "operator": "eq", "value": "${currentUser}"}, {"fieldName": "receiverId", "operator": "eq", "value": "${receiverId}"}]}`;
+
+//     const query = `{
+//       "filters": [
+//         {
+//           "operator": "or",
+//           "filters": [
+//             {
+//               "fieldName": "senderId",
+//               "operator": "eq",
+//               "value": "${currentUser}"
+//             },
+//             {
+//               "fieldName": "receiverId",
+//               "operator": "eq",
+//               "value": "${receiverId}"
+//             }
+//           ]
+//         },
+//         {
+//           "operator": "or",
+//           "filters": [
+//             {
+//               "fieldName": "senderId",
+//               "operator": "eq",
+//               "value": "${receiverId}"
+//             },
+//             {
+//               "fieldName": "receiverId",
+//               "operator": "eq",
+//               "value": "${currentUser}"
+//             }
+//           ]
+//         }
+//       ]
+//     }`;
+
+//     const conversations = await databases.listDocuments(
+//       appwriteConfig.databaseId,
+//       appwriteConfig.groupedMessagesCollection,
+//       query
+//     );
+
+//     if (
+// //      !conversations ||
+//       conversations === null ||
+//       conversations === undefined
+//     ) {
+//       conversations = await createNewConversation(receiverId, messageId);
+//       return conversations;
+//     } else {
+//       const conversationData = conversations.documents[0];
+
+//       const existingMessageIds = conversationData.messageIdsArray;
+
+//       // Append the new messageId to the existing array using the spread operator
+//       const updatedMessageIds = [...existingMessageIds, messageId];
+
+//       const updateConversation = await databases.updateDocument(
+//         appwriteConfig.databaseId,
+//         appwriteConfig.groupedMessagesCollection,
+//         conversationData.conversationId,
+//         {
+//           conversationId: conversationData.conversationId,
+//           senderId: currentUser,
+//           receiverId: receiverId,
+//           messageIdsArray: updatedMessageIds,
+//         }
+//       );
+
+//       return updateConversation;
+//     }
+//   } catch (error) {
+//     throw new Error(error);
+//   }
+// }
 //we send the message to the collection, the createConversation takes the senderId and the receiverId and the newMessage and creates a new conversation with an conversationId, receiver and senderId and pushes the message to the messagesArray. Limitations are that this is true only if the message is the first message in a conversation. Must check if the conversation exists then just push the message to the conversation.  I am not usre if appwrite supports a collection to be a part of an array, this would hinder my schema.
 
 // export async function sendInitialMessage(senderId, receiverId, body) {

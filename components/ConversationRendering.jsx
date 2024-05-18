@@ -1,18 +1,30 @@
-import { View, TextInput, ScrollView, Text } from "react-native";
+import {
+  View,
+  TextInput,
+  ScrollView,
+  Text,
+  Alert,
+  TouchableOpacity,
+} from "react-native";
 import React, { useEffect, useState } from "react";
 import Feather from "@expo/vector-icons/Feather";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { SafeAreaView } from "react-native-safe-area-context";
 import ConversationBubbleRight from "./ConversationBubbleRight";
 import ConversationBubbleLeft from "./ConversationBubble";
-import { fetchMessagebyId } from "../api/appwrite";
+import { addMessageToConversation, fetchMessagebyId } from "../api/appwrite";
 import { useGlobalContext } from "../context/GlobalProvider";
+import { router } from "expo-router";
 
-const ConversationRendering = ({ conversation }) => {
+const ConversationRendering = ({ conversation, userData }) => {
   const { user } = useGlobalContext();
   const [conversations, setConversations] = useState();
   const [loading, setLoading] = useState(true);
   const userId = user.accountId;
+
+  const [message, setMessage] = useState({
+    body: "",
+  });
 
   useEffect(() => {
     fetchMessages();
@@ -37,6 +49,27 @@ const ConversationRendering = ({ conversation }) => {
     }
   };
 
+  const submitMessage = async () => {
+    if (message.body === "") {
+      return Alert.alert("Message is empty");
+    }
+
+    const receiverId = userData?.userAccountId;
+    const messageSend = message.body;
+
+    try {
+      await addMessageToConversation(receiverId, messageSend);
+    } catch (error) {
+      Alert.alert("Error", error.message);
+    } finally {
+      setMessage({
+        body: "",
+      });
+
+      setLoading(false);
+    }
+  };
+
   return (
     <SafeAreaView className="flex-col bg-[#FAFDFF] items-center justify-start w-full h-[84vh]">
       <View className="w-full h-[92%] p-2 absolute top-0">
@@ -50,11 +83,17 @@ const ConversationRendering = ({ conversation }) => {
               <View key={index}>
                 {item.senderId === userId ? (
                   <View className="mb-4 items-end">
-                    <ConversationBubbleRight body={item.body} />
+                    <ConversationBubbleRight
+                      body={item.body}
+                      timeStamp={item.timeStamp}
+                    />
                   </View>
                 ) : (
                   <View className="mb-4 items-start">
-                    <ConversationBubbleLeft body={item.body} />
+                    <ConversationBubbleLeft
+                      body={item.body}
+                      timeStamp={item.timeStamp}
+                    />
                   </View>
                 )}
               </View>
@@ -70,11 +109,16 @@ const ConversationRendering = ({ conversation }) => {
             className="flex-1 text-black font-pregular mt-0.5 text-base px-4"
             placeholder="Search..."
             placeholderTextColor="#cdcde0"
+            value={message.body}
+            onChangeText={(e) => setMessage({ ...message, body: e })}
           />
 
-          <View className="h-[40px] w-[40px] bg-[#885FFF] rounded-full items-center pr-1 justify-center">
+          <TouchableOpacity
+            className="h-[40px] w-[40px] bg-[#885FFF] rounded-full items-center pr-1 justify-center"
+            onPress={submitMessage}
+          >
             <FontAwesome name="send" size={17} color="white" />
-          </View>
+          </TouchableOpacity>
         </View>
       </View>
     </SafeAreaView>

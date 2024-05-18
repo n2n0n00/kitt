@@ -44,7 +44,10 @@ const Conversation = () => {
               name={userData.userName}
             />
 
-            <ConversationRendering conversation={conversation} />
+            <ConversationRendering
+              userData={userData}
+              conversation={conversation}
+            />
           </>
         )}
       </View>
