@@ -25,9 +25,9 @@ const MessagingNav = ({ avatar, statusLabel, name }) => {
                 source={{ uri: avatar }}
               />
             </View>
-            <View className="ml-2">
+            <View className="ml-2 items-center justify-center">
               <Text className="font-pmedium text-lg">{name}</Text>
-              <View className="flex-row items-center justify-start ">
+              {/* <View className="flex-row items-center justify-start ">
                 <View
                   className={`${
                     statusLabel === "Online"
@@ -38,7 +38,7 @@ const MessagingNav = ({ avatar, statusLabel, name }) => {
                 <Text className="text-[#52697E] ml-1 font-pregular">
                   {statusLabel}
                 </Text>
-              </View>
+              </View> */}
             </View>
           </View>
         </View>

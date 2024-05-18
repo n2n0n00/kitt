@@ -53,7 +53,7 @@ const Conversation = () => {
           <>
             <MessagingNav
               avatar={userData.userAvatar}
-              statusLabel="Online"
+              // statusLabel="Online"
               name={userData.userName}
             />
 

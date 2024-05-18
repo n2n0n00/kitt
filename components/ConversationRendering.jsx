@@ -6,25 +6,23 @@ import {
   Alert,
   TouchableOpacity,
 } from "react-native";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import Feather from "@expo/vector-icons/Feather";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { SafeAreaView } from "react-native-safe-area-context";
 import ConversationBubbleRight from "./ConversationBubbleRight";
 import ConversationBubbleLeft from "./ConversationBubble";
-import {
-  addMessageToConversation,
-  appwriteConfig,
-  client,
-  fetchMessagebyId,
-} from "../api/appwrite";
+import { addMessageToConversation, fetchMessagebyId } from "../api/appwrite";
 import { useGlobalContext } from "../context/GlobalProvider";
 
 const ConversationRendering = ({ conversation, userData }) => {
   const { user } = useGlobalContext();
   const [conversations, setConversations] = useState();
   const [loading, setLoading] = useState(true);
+  const [initialLoading, setInitialLoading] = useState(true);
   const userId = user.accountId;
+
+  const scrollViewRef = useRef();
 
   const [message, setMessage] = useState({
     body: "",
@@ -41,6 +39,7 @@ const ConversationRendering = ({ conversation, userData }) => {
         console.error("Error fetching conversations:", error);
       } finally {
         setLoading(false);
+        setInitialLoading(false);
       }
     };
 
@@ -49,6 +48,10 @@ const ConversationRendering = ({ conversation, userData }) => {
     }, 5000);
 
     fetchMessages(); // Initial call
+
+    if (scrollViewRef.current) {
+      scrollViewRef.current.scrollToEnd({ animated: true });
+    }
 
     // Clean up the interval on component unmount
     return () => clearInterval(intervalId);
@@ -104,36 +107,32 @@ const ConversationRendering = ({ conversation, userData }) => {
   return (
     <SafeAreaView className="flex-col bg-[#FAFDFF] items-center justify-start w-full h-[84vh]">
       <View className="w-full h-[92%] p-2 absolute top-0">
-        <ScrollView>
-          {
-            // loading ? (
-            //   <Text>Loading...</Text>
-            // )
-            // :
-            conversations === undefined ? (
-              <></>
-            ) : (
-              conversations.map((item, index) => (
-                <View key={index}>
-                  {item.senderId === userId ? (
-                    <View className="mb-4 items-end">
-                      <ConversationBubbleRight
-                        body={item.body}
-                        timeStamp={item.timeStamp}
-                      />
-                    </View>
-                  ) : (
-                    <View className="mb-4 items-start">
-                      <ConversationBubbleLeft
-                        body={item.body}
-                        timeStamp={item.timeStamp}
-                      />
-                    </View>
-                  )}
-                </View>
-              ))
-            )
-          }
+        <ScrollView ref={scrollViewRef}>
+          {initialLoading ? (
+            <Text>Loading...</Text>
+          ) : conversations === undefined ? (
+            <></>
+          ) : (
+            conversations.map((item, index) => (
+              <View key={index}>
+                {item.senderId === userId ? (
+                  <View className="mb-4 items-end">
+                    <ConversationBubbleRight
+                      body={item.body}
+                      timeStamp={item.timeStamp}
+                    />
+                  </View>
+                ) : (
+                  <View className="mb-4 items-start">
+                    <ConversationBubbleLeft
+                      body={item.body}
+                      timeStamp={item.timeStamp}
+                    />
+                  </View>
+                )}
+              </View>
+            ))
+          )}
         </ScrollView>
       </View>
 
