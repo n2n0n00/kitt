@@ -19,7 +19,7 @@ export const appwriteConfig = {
   usersCollection: "662c19e70039a60041ee",
 };
 
-const {
+export const {
   endpoint,
   platform,
   projectId,
@@ -29,7 +29,7 @@ const {
   usersCollection,
 } = appwriteConfig;
 
-const client = new Client();
+export const client = new Client();
 
 client
   .setEndpoint(appwriteConfig.endpoint)
@@ -195,35 +195,6 @@ export async function createNewConversation(receiverId, messageId) {
     return newConversation;
   } catch (error) {
     throw new Error(`Failed to create new conversation: ${error.message}`);
-  }
-}
-
-async function fetchAndFilterConversations(currentAccount, receiverId) {
-  try {
-    // Fetch all conversations
-    const conversations = await databases.listDocuments(
-      appwriteConfig.databaseId,
-      appwriteConfig.groupedMessagesCollection
-    );
-
-    // Filter conversations based on the given criteria
-    const filteredConversations = conversations.documents.filter((doc) => {
-      return (
-        (doc.senderId === currentAccount && doc.receiverId === receiverId) ||
-        (doc.senderId === receiverId && doc.receiverId === currentAccount)
-      );
-    });
-
-    if (filteredConversations.length > 0) {
-      filteredConversations.forEach((doc) => {
-        console.log("Filtered Conversation:", doc);
-        // Process each filtered conversation document as needed
-      });
-    } else {
-      console.log("No matching conversations found.");
-    }
-  } catch (error) {
-    console.error("Error fetching conversations:", error);
   }
 }
 

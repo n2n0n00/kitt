@@ -17,6 +17,19 @@ const Conversation = () => {
 
   useEffect(() => {
     fetchMessages();
+
+    const fetchConversation = async () => {
+      const conversations = await fetchMessagesByConversationId(
+        conversationId.conversation
+      );
+      setConversation(conversations);
+    };
+
+    const intervalId = setInterval(() => {
+      fetchConversation();
+    }, 2000);
+
+    return () => clearInterval(intervalId);
   }, []);
 
   const fetchMessages = async () => {

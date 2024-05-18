@@ -12,9 +12,13 @@ import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { SafeAreaView } from "react-native-safe-area-context";
 import ConversationBubbleRight from "./ConversationBubbleRight";
 import ConversationBubbleLeft from "./ConversationBubble";
-import { addMessageToConversation, fetchMessagebyId } from "../api/appwrite";
+import {
+  addMessageToConversation,
+  appwriteConfig,
+  client,
+  fetchMessagebyId,
+} from "../api/appwrite";
 import { useGlobalContext } from "../context/GlobalProvider";
-import { router } from "expo-router";
 
 const ConversationRendering = ({ conversation, userData }) => {
   const { user } = useGlobalContext();
@@ -27,27 +31,54 @@ const ConversationRendering = ({ conversation, userData }) => {
   });
 
   useEffect(() => {
-    fetchMessages();
-  }, [conversation]);
-
-  const fetchMessages = async () => {
-    try {
-      const messageIds = await conversation[0].messageIdsArray;
-
-      const conversationsData = await fetchMessagebyId(messageIds);
-      setConversations(conversationsData);
-
-      if (conversations === undefined) {
+    const fetchMessages = async () => {
+      setLoading(true);
+      try {
+        const messageIds = conversation[0].messageIdsArray;
+        const conversationsData = await fetchMessagebyId(messageIds);
+        setConversations(conversationsData);
+      } catch (error) {
+        console.error("Error fetching conversations:", error);
+      } finally {
         setLoading(false);
       }
+    };
 
-      // if (loading === true) {
-      //   setLoading(false);
-      // }
-    } catch (error) {
-      console.error("Error fetching conversations:", error);
-    }
-  };
+    const intervalId = setInterval(() => {
+      fetchMessages();
+    }, 5000);
+
+    fetchMessages(); // Initial call
+
+    // Clean up the interval on component unmount
+    return () => clearInterval(intervalId);
+  }, [conversation]);
+
+  //the problem is that there is no constant return from the database collection so to solve theoritically I have to call on the database multiple times with a setInterval
+
+  // useEffect(() => {
+  //   fetchMessages();
+  //   console.log(conversation[0].messageIdsArray);
+  // }, [conversation[0].messageIdsArray]);
+
+  // const fetchMessages = async () => {
+  //   try {
+  //     const messageIds = await conversation[0].messageIdsArray;
+
+  //     const conversationsData = await fetchMessagebyId(messageIds);
+  //     setConversations(conversationsData);
+
+  //     if (conversations === undefined) {
+  //       setLoading(false);
+  //     }
+
+  //     // if (loading === true) {
+  //     //   setLoading(false);
+  //     // }
+  //   } catch (error) {
+  //     console.error("Error fetching conversations:", error);
+  //   }
+  // };
 
   const submitMessage = async () => {
     if (message.body === "") {
@@ -74,31 +105,35 @@ const ConversationRendering = ({ conversation, userData }) => {
     <SafeAreaView className="flex-col bg-[#FAFDFF] items-center justify-start w-full h-[84vh]">
       <View className="w-full h-[92%] p-2 absolute top-0">
         <ScrollView>
-          {loading ? (
-            <Text>Loading...</Text>
-          ) : conversations === undefined ? (
-            <></>
-          ) : (
-            conversations.map((item, index) => (
-              <View key={index}>
-                {item.senderId === userId ? (
-                  <View className="mb-4 items-end">
-                    <ConversationBubbleRight
-                      body={item.body}
-                      timeStamp={item.timeStamp}
-                    />
-                  </View>
-                ) : (
-                  <View className="mb-4 items-start">
-                    <ConversationBubbleLeft
-                      body={item.body}
-                      timeStamp={item.timeStamp}
-                    />
-                  </View>
-                )}
-              </View>
-            ))
-          )}
+          {
+            // loading ? (
+            //   <Text>Loading...</Text>
+            // )
+            // :
+            conversations === undefined ? (
+              <></>
+            ) : (
+              conversations.map((item, index) => (
+                <View key={index}>
+                  {item.senderId === userId ? (
+                    <View className="mb-4 items-end">
+                      <ConversationBubbleRight
+                        body={item.body}
+                        timeStamp={item.timeStamp}
+                      />
+                    </View>
+                  ) : (
+                    <View className="mb-4 items-start">
+                      <ConversationBubbleLeft
+                        body={item.body}
+                        timeStamp={item.timeStamp}
+                      />
+                    </View>
+                  )}
+                </View>
+              ))
+            )
+          }
         </ScrollView>
       </View>
 
