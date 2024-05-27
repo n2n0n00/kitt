@@ -3,7 +3,7 @@ import React from "react";
 
 const ProfileHeader = () => {
   return (
-    <View className="w-full mt-10 ">
+    <View className="w-full mt-8 relative">
       <View className="flex-row items-center justify-start">
         <View className="w-[105px] h-[105px] bg-pink-500 rounded-full items-center justify-center">
           <View className="bg-[#DCDEE0] h-[100px] w-[100px] rounded-full" />
@@ -39,6 +39,15 @@ const ProfileHeader = () => {
             Friends
           </Text>
           <Text className="font-psemibold text-[20px]">2,523</Text>
+        </View>
+      </View>
+
+      <View className="flex-row items-center justify-center w-full p-4">
+        <View className="bg-[#FF8743] w-3/4 h-[45px] rounded-xl mr-2 items-center justify-center">
+          <Text className="font-pregular text-[14px] text-white">Follow</Text>
+        </View>
+        <View className="bg-[#E9ECEF] w-1/4 h-[45px] rounded-xl items-center justify-center">
+          <Text className="font-pregular text-[14px] text-black">Chat</Text>
         </View>
       </View>
     </View>
