@@ -1,7 +1,24 @@
 import { View, Text, Image } from "react-native";
-import React from "react";
+import React, { useEffect, useState } from "react";
+import { fetchFollowerbyUserId } from "../api/appwrite";
 
 const ProfileHeader = () => {
+  const [profileData, setProfileData] = useState([]);
+
+  useEffect(() => {
+    fetchUserData();
+  }, []);
+
+  const fetchUserData = async () => {
+    try {
+      const friendsAndFollowers = await fetchFollowerbyUserId();
+      setProfileData(friendsAndFollowers);
+      console.log(profileData);
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    }
+  };
+
   return (
     <View className="w-full mt-8 relative">
       <View className="flex-row items-center justify-start">
@@ -31,14 +48,18 @@ const ProfileHeader = () => {
           <Text className="text-[#52697E] text-[14px] font-pregular">
             Followers
           </Text>
-          <Text className="font-psemibold text-[20px]">2.3m</Text>
+          <Text className="font-psemibold text-[20px]">
+            {profileData[0]?.followerCount}
+          </Text>
         </View>
         <View className="h-[50px] w-[2px] bg-[#DCDEE0]" />
         <View className="flex-col">
           <Text className="text-[#52697E] text-[14px] font-pregular">
             Friends
           </Text>
-          <Text className="font-psemibold text-[20px]">2,523</Text>
+          <Text className="font-psemibold text-[20px]">
+            {profileData[0]?.friendsCount}
+          </Text>
         </View>
       </View>
 

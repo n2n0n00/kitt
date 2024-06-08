@@ -17,6 +17,8 @@ export const appwriteConfig = {
   groupedMessagesCollection: "662c1b47002ed415b33c",
   messagesCollection: "662c1a9e0004417c9970",
   usersCollection: "662c19e70039a60041ee",
+  friends: "6658ee520004d381b033",
+  followers: "6658e5020038ca7b9d53",
 };
 
 export const {
@@ -27,6 +29,8 @@ export const {
   groupedMessagesCollection,
   messagesCollection,
   usersCollection,
+  friends,
+  followers,
 } = appwriteConfig;
 
 export const client = new Client();
@@ -81,6 +85,26 @@ export async function createUser(email, password, name) {
         name: name,
         password: password,
         avatar: avatarUrl,
+      }
+    );
+
+    const followerDatabase = await databases.createDocument(
+      appwriteConfig.databaseId,
+      appwriteConfig.followers,
+      ID.unique(),
+      {
+        followedAccountId: newUser.accountId,
+        followers: [],
+      }
+    );
+
+    const friendsDatabase = await databases.createDocument(
+      appwriteConfig.databaseId,
+      appwriteConfig.friends,
+      ID.unique(),
+      {
+        friendsAccountId: newUser.accountId,
+        friends: [],
       }
     );
 
@@ -431,6 +455,78 @@ export async function fetchMessagebyId(messageIds) {
     throw new Error(error);
   }
 }
+
+export async function fetchFollowerbyUserId() {
+  try {
+    const userData = await getCurrentUser();
+    const userId = userData.accountId;
+
+    // follower fetching
+    const followerQuery = await databases.listDocuments(databaseId, followers, [
+      Query.equal("followedAccountId", userId),
+    ]);
+
+    const followersArray = followerQuery.documents;
+
+    const userFollowers = followersArray.reduce((acc, doc) => {
+      if (doc.followers && Array.isArray(doc.followers)) {
+        acc.push(...doc.followers);
+      }
+      return acc;
+    }, []);
+
+    const followerCount = followersArray.length;
+
+    // friends fetching
+    const friendsQuery = await databases.listDocuments(databaseId, friends, [
+      Query.equal("friendsAccountId", userId),
+    ]);
+
+    const friendsArray = friendsQuery.documents;
+
+    const userFriends = friendsArray.reduce((acc, doc) => {
+      if (doc.friends && Array.isArray(doc.friends)) {
+        acc.push(...doc.friends);
+      }
+      return acc;
+    }, []);
+
+    const friendsCount = friendsArray.length;
+
+    return [{ followerCount, friendsCount, userFriends, userFollowers }];
+  } catch (error) {
+    console.error("Error fetching followers:", error);
+    throw new Error(error);
+  }
+}
+
+// export async function followerFriendsHandling(userId, followedId) {
+//   try {
+//     //query follower db for followedId = followedAccountId
+//     const followerQuery = await databases.listDocuments(databaseId, followers, [
+//       Query.equal("followerAccountId", followedId),
+//     ]);
+//     //add userId to followers array
+//     let followersArray = followerQuery.followers;
+//     followersArray.push(userId);
+//     //return array
+//     // return followersArray
+
+//     //query friends db for userId = friendsAccountId
+
+//     const friendsQuery = await databases.listDocuments(databaseId, friends, [
+//       Query.equal("friendsAccountId", userId),
+//     ]);
+//     // add followedId to friends array
+//     let friendsArray = friendsQuery.friends;
+//     friendsArray.push(followedId);
+//     //return array
+//     //return friendsArray
+//     //return [{friends.length, friends}, {followers, followers.length}]
+//   } catch (error) {
+//     throw new Error(error);
+//   }
+// }
 
 // export async function createNewConversation(receiverId, messageId) {
 //   try {
